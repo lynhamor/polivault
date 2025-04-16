@@ -14,6 +14,7 @@ import com.speech.vault.repository.UserRepository;
 import com.speech.vault.type.MessageKey;
 import com.speech.vault.type.SpeechStatusType;
 import com.speech.vault.type.StatusType;
+import com.speech.vault.util.SpeechUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -49,10 +50,10 @@ public class SpeechService {
         int nOffset = Math.max(page - 1, 0) * pageSize;
 
         Integer itemCount = speechesRepository.countAllSpeeches(filterDto.getSearch(),
-                                                            filterDto.getKeywords(),
-                                                            filterDto.getStatus(),
-                                                            filterDto.getStartDate(),
-                                                            filterDto.getEndDate());
+                                                                filterDto.getKeywords(),
+                                                                filterDto.getStatus(),
+                                                                filterDto.getStartDate(),
+                                                                filterDto.getEndDate());
 
         if(itemCount == null)
             return ResponseDto.builder()
@@ -90,7 +91,7 @@ public class SpeechService {
 
     public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) throws JsonProcessingException {
 
-        ResponseEntity<ResponseDto> validatedDto = validateSpeechDto(dto);
+        ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
         if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
             return validatedDto;
 
@@ -138,7 +139,7 @@ public class SpeechService {
 
     public ResponseEntity<ResponseDto> setSpeechStatus(String status, Long speechId) {
 
-        SpeechStatusType speechStatusType = getSpeechStatusType(status);
+        SpeechStatusType speechStatusType = SpeechUtil.getSpeechStatusType(status);
         if(speechStatusType == null)
             return ResponseDto.builder()
                     .statusType(StatusType.INTERNAL_ERROR)
@@ -160,30 +161,9 @@ public class SpeechService {
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
-                .message(getSpeechStatusTypeMessageKey(status).name())
+                .message(SpeechUtil.getSpeechStatusTypeMessageKey(status).name())
                 .build()
                 .getResponseEntity();
-    }
-
-    private MessageKey getSpeechStatusTypeMessageKey(String status){
-        return switch (status.toLowerCase()){
-            case "draft" -> MessageKey.SPEECH_DRAFTED_SUCCESSFULLY;
-            case "delete" -> MessageKey.SPEECH_DELETED_SUCCESSFULLY;
-            case "archive" -> MessageKey.SPEECH_ARCHIVED_SUCCESSFULLY;
-            case "publish" -> MessageKey.SPEECH_PUBLISHED_SUCCESSFULLY;
-            default -> null;
-        };
-    }
-
-    private SpeechStatusType getSpeechStatusType(String status) {
-
-        return switch (status.toLowerCase()){
-            case "draft" -> SpeechStatusType.DRAFT;
-            case "delete" -> SpeechStatusType.DELETED;
-            case "archive" -> SpeechStatusType.ARCHIVED;
-            case "publish" -> SpeechStatusType.PUBLISHED;
-            default -> null;
-        };
     }
 
     private Speech speechBuilder(Speech speech, SpeechDto dto) {
@@ -204,39 +184,4 @@ public class SpeechService {
         return speechesRepository.save(speech);
     }
 
-    private ResponseEntity<ResponseDto> validateSpeechDto(SpeechDto dto) {
-        if(dto == null)
-            return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.DTO_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
-
-        if(dto.getTitle() == null || dto.getTitle().isEmpty())
-            return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.SPEECH_DTO_TITLE_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
-
-        if(dto.getAuthor() == null || dto.getAuthor().isEmpty())
-            return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.SPEECH_DTO_AUTHOR_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
-
-        if(dto.getEventAt() == null)
-            return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.SPEECH_DTO_EVENT_DATE_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
-
-        return ResponseDto.builder()
-                .statusType(StatusType.SUCCESS)
-                .build()
-                .getResponseEntity();
-
-    }
 }
