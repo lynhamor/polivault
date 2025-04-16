@@ -24,30 +24,38 @@ public class UserService {
     }
 
     public ResponseEntity<ResponseDto> register(User dto) {
+        try{
 
-        if(dto == null)
+            if(dto == null)
+                return ResponseDto.builder()
+                        .statusType(StatusType.ERROR)
+                        .message(MessageKey.DTO_NOT_FOUND.name())
+                        .build()
+                        .getResponseEntity();
+
+            User user = userRepository.findByUsername(dto.getUsername()).orElse(null);
+            if (user != null)
+                return ResponseDto.builder()
+                        .statusType(StatusType.ERROR)
+                        .message(MessageKey.USER_ALREADY_EXIST.name())
+                        .build()
+                        .getResponseEntity();
+
+            user = userBuilder(user, dto);
+
             return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.DTO_NOT_FOUND.name())
+                    .statusType(StatusType.SUCCESS)
+                    .message(MessageKey.USER_REGISTERED_SUCCESSFULLY.name())
+                    .data(user)
                     .build()
                     .getResponseEntity();
-
-        User user = userRepository.findByUsername(dto.getUsername()).orElse(null);
-        if (user != null)
+        }catch(Exception e){
             return ResponseDto.builder()
-                    .statusType(StatusType.ERROR)
-                    .message(MessageKey.USER_ALREADY_EXIST.name())
+                    .statusType(StatusType.INTERNAL_ERROR)
+                    .message(e.getMessage())
                     .build()
                     .getResponseEntity();
-
-        user = userBuilder(user, dto);
-
-        return ResponseDto.builder()
-                .statusType(StatusType.SUCCESS)
-                .message(MessageKey.USER_REGISTERED_SUCCESSFULLY.name())
-                .data(user)
-                .build()
-                .getResponseEntity();
+        }
     }
 
     private User userBuilder(User user, User dto) {

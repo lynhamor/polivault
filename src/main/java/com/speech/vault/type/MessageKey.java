@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum MessageKey {
     DTO_NOT_FOUND,
     BAD_REQUEST,
+    INTERNAL_SERVER_ERROR,
 
     USER_REGISTERED_SUCCESSFULLY,
     USER_ALREADY_EXIST,

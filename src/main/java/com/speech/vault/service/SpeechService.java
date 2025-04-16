@@ -90,51 +90,59 @@ public class SpeechService {
     }
 
     public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) throws JsonProcessingException {
+        try{
 
-        ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
-        if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
-            return validatedDto;
+            ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
+            if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
+                return validatedDto;
 
-        User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
-        if(author == null)
+            User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
+            if(author == null)
+                return ResponseDto.builder()
+                        .statusType(StatusType.INVALID)
+                        .message(MessageKey.AUTHOR_NOT_FOUND.name())
+                        .build()
+                        .getResponseEntity();
+
+            Speech speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(null) : new Speech();
+            if(speech == null)
+                return ResponseDto.builder()
+                        .statusType(StatusType.INVALID)
+                        .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                        .build()
+                        .getResponseEntity();
+
+            Speech finalSpeech = speechBuilder(speech, dto);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("speech", finalSpeech);
+
+            if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
+
+                ObjectMapper mapper = new ObjectMapper();
+                String keywords = mapper.writeValueAsString(dto.getKeywords());
+                SpeechTag speechTags = SpeechTag.builder()
+                        .speechId(finalSpeech.getId())
+                        .keywords(keywords)
+                        .build();
+
+                speechTags = speechTagRepository.save(speechTags);
+                result.put("tags", speechTags);
+            }
+
             return ResponseDto.builder()
-                    .statusType(StatusType.INVALID)
-                    .message(MessageKey.AUTHOR_NOT_FOUND.name())
+                    .statusType(StatusType.SUCCESS)
+                    .message(MessageKey.SPEECH_SAVED_SUCCESSFULLY.name())
+                    .data(result)
                     .build()
                     .getResponseEntity();
-
-        Speech speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(null) : new Speech();
-        if(speech == null)
+        }catch (Exception e){
             return ResponseDto.builder()
-                    .statusType(StatusType.INVALID)
-                    .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                    .statusType(StatusType.INTERNAL_ERROR)
+                    .message(e.getMessage())
                     .build()
                     .getResponseEntity();
-
-        Speech finalSpeech = speechBuilder(speech, dto);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("speech", finalSpeech);
-
-        if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
-
-            ObjectMapper mapper = new ObjectMapper();
-            String keywords = mapper.writeValueAsString(dto.getKeywords());
-            SpeechTag speechTags = SpeechTag.builder()
-                    .speechId(finalSpeech.getId())
-                    .keywords(keywords)
-                    .build();
-
-            speechTags = speechTagRepository.save(speechTags);
-            result.put("tags", speechTags);
         }
-
-        return ResponseDto.builder()
-                .statusType(StatusType.SUCCESS)
-                .message(MessageKey.SPEECH_SAVED_SUCCESSFULLY.name())
-                .data(result)
-                .build()
-                .getResponseEntity();
     }
 
     public ResponseEntity<ResponseDto> setSpeechStatus(String status, Long speechId) {
