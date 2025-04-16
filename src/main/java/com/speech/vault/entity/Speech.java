@@ -19,7 +19,7 @@ public class Speech {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "title", nullable = false, length = 20)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "content")
@@ -29,7 +29,7 @@ public class Speech {
     @Column(name = "status", nullable = false)
     private SpeechStatusType status;
 
-    @Column(name = "slug", nullable = false, length = 40)
+    @Column(name = "slug", nullable = false, length = 100)
     private String slug;
 
     @Column(name = "event_at")
@@ -49,5 +49,6 @@ public class Speech {
 
     @Column(name = "updated_by", nullable = false, length = 100)
     private String updatedBy;
+
 
 }
