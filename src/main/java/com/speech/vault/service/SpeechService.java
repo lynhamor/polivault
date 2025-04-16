@@ -6,12 +6,13 @@ import com.speech.vault.dto.ResponseDto;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.dto.speech.SpeechesFilterDto;
 import com.speech.vault.entity.SpeechTag;
-import com.speech.vault.entity.Speeches;
+import com.speech.vault.entity.Speech;
 import com.speech.vault.entity.User;
 import com.speech.vault.repository.SpeechTagRepository;
 import com.speech.vault.repository.SpeechesRepository;
 import com.speech.vault.repository.UserRepository;
 import com.speech.vault.type.MessageKey;
+import com.speech.vault.type.SpeechStatusType;
 import com.speech.vault.type.StatusType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -101,24 +102,20 @@ public class SpeechService {
                     .build()
                     .getResponseEntity();
 
-        Speeches speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(new Speeches()) : new Speeches();
-        speech.setTitle(dto.getTitle());
-        speech.setSlug(dto.getTitle().replace(" ","-"));
-        speech.setContent(dto.getContent());
-        speech.setStatus(dto.getStatus());
-        speech.setEventAt(dto.getEventAt());
-        speech.setCreatedAt(new Date());
-        speech.setCreatedBy(dto.getAuthor());
-        speech.setUpdatedAt(new Date());
-        speech.setUpdatedBy(dto.getAuthor());
-        speech.setIsDeleted(false);
-        speech = speechesRepository.save(speech);
+        Speech speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(null) : new Speech();
+        if(speech == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
+
+        Speech finalSpeech = speechBuilder(speech, dto);
 
         Map<String, Object> result = new HashMap<>();
-        result.put("speech", speech);
+        result.put("speech", finalSpeech);
 
         if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
-            Speeches finalSpeech = speech;
 
             ObjectMapper mapper = new ObjectMapper();
             String keywords = mapper.writeValueAsString(dto.getKeywords());
@@ -137,6 +134,45 @@ public class SpeechService {
                 .data(result)
                 .build()
                 .getResponseEntity();
+    }
+
+    public ResponseEntity<ResponseDto> deleteSpeech(Long speechId) {
+
+        Speech speech = speechesRepository.findById(speechId).orElse(null);
+        if(speech == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
+
+        speech.setStatus(SpeechStatusType.DELETED);
+        speech.setIsDeleted(true);
+        speechesRepository.save(speech);
+
+        return ResponseDto.builder()
+                .statusType(StatusType.SUCCESS)
+                .message(MessageKey.SPEECH_DELETED_SUCCESSFULLY.name())
+                .build()
+                .getResponseEntity();
+    }
+
+    private Speech speechBuilder(Speech speech, SpeechDto dto) {
+
+        speech.setTitle(dto.getTitle());
+        speech.setSlug(dto.getTitle().replace(" ","-"));
+        speech.setContent(dto.getContent());
+        speech.setStatus(dto.getStatus());
+        speech.setEventAt(dto.getEventAt());
+        if(speech.getId() == null){
+            speech.setCreatedAt(new Date());
+            speech.setCreatedBy(dto.getAuthor());
+        }
+        speech.setUpdatedAt(new Date());
+        speech.setUpdatedBy(dto.getAuthor());
+        speech.setIsDeleted(false);
+
+        return speechesRepository.save(speech);
     }
 
     private ResponseEntity<ResponseDto> validateSpeechDto(SpeechDto dto) {

@@ -40,13 +40,7 @@ public class UserService {
                     .build()
                     .getResponseEntity();
 
-        user = new User();
-        user.setUsername(dto.getUsername());
-        user.setName(dto.getName());
-        user.setUserType(dto.getUserType());
-        user.setCreatedAt(new Date());
-
-        user = userRepository.save(user);
+        user = userBuilder(user, dto);
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
@@ -54,6 +48,16 @@ public class UserService {
                 .data(user)
                 .build()
                 .getResponseEntity();
+    }
+
+    private User userBuilder(User user, User dto) {
+        user = new User();
+        user.setUsername(dto.getUsername());
+        user.setName(dto.getName());
+        user.setUserType(dto.getUserType());
+        user.setCreatedAt(new Date());
+
+        return userRepository.save(user);
     }
 
     public ResponseEntity<ResponseDto> getAllUser(UserFilterDto filterDto) {

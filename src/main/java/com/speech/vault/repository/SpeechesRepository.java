@@ -1,7 +1,6 @@
 package com.speech.vault.repository;
 
-import com.speech.vault.entity.Speeches;
-import com.speech.vault.type.SpeechStatusType;
+import com.speech.vault.entity.Speech;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,24 +9,32 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public interface SpeechesRepository extends JpaRepository<Speeches, Long> {
+public interface SpeechesRepository extends JpaRepository<Speech, Long> {
 
     @Query(value = """
         SELECT
             s.id                     AS id,
             s.title                  AS title,
             s.content                AS content,
-            s.created_by             AS author,
+            u.username               AS username,
+            u.name                   AS author,
             s.status                 AS status,
             s.slug                   AS slug,
             s.event_at               AS eventAt,
             s.is_deleted             AS isDeleted,
             st.keywords              AS tags,
-            s.created_at             AS created_at
+            s.created_at             AS createdAt,
+            s.created_by             AS createdBy,
+            s.updated_at             AS updatedAt,
+            s.updated_by             AS updatedBy
         FROM
-            `speeches` AS s
+            `speech` AS s
         LEFT JOIN
-            `speech_tag` AS st ON s.id = st.speech_id
+            `speech_tag` AS st
+            ON s.id = st.speech_id
+        LEFT JOIN
+            `user` AS u
+            ON u.username = s.created_by
         WHERE
             (
                 :search IS NULL OR :search = ''
@@ -60,9 +67,13 @@ public interface SpeechesRepository extends JpaRepository<Speeches, Long> {
         SELECT
             COUNT(1)
         FROM
-            `speeches` AS s
+            `speech` AS s
         LEFT JOIN
-            `speech_tag` AS st ON s.id = st.speech_id
+            `speech_tag` AS st
+            ON s.id = st.speech_id
+        LEFT JOIN
+            `user` AS u
+            ON u.username = s.created_by
         WHERE
             (
                 :search IS NULL OR :search = ''
