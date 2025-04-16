@@ -5,7 +5,7 @@ import com.speech.vault.dto.ResponseDto;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.dto.speech.SpeechesFilterDto;
 import com.speech.vault.service.SpeechService;
-import org.apache.coyote.Response;
+import com.speech.vault.type.SpeechStatusType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +29,8 @@ public class SpeechController {
         return speechService.setSpeech(dto);
     }
 
-    @PostMapping("/delete/{speechId}")
-    public ResponseEntity<ResponseDto> deleteSpeech(@PathVariable Long speechId) throws JsonProcessingException {
-        return speechService.deleteSpeech(speechId);
+    @PostMapping("/{status}/{speechId}")
+    public ResponseEntity<ResponseDto> setSpeechStatus(@PathVariable String status, @PathVariable Long speechId) throws JsonProcessingException {
+        return speechService.setSpeechStatus(status, speechId);
     }
 }

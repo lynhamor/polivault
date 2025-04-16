@@ -7,5 +7,6 @@ public enum StatusType {
     ERROR,
     FORBIDDEN,
     UNAUTHORIZED,
-    INVALID
+    INVALID,
+    INTERNAL_ERROR,
 }

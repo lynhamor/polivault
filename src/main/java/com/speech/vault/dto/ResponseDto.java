@@ -28,7 +28,7 @@ public class ResponseDto {
         this.timeMills = System.currentTimeMillis();
         HttpStatus httpStatus = switch (statusType) {
             case SUCCESS, WARNING, INFO -> HttpStatus.OK;
-            case ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case ERROR, INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
             case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case INVALID -> HttpStatus.BAD_REQUEST;
@@ -40,7 +40,7 @@ public class ResponseDto {
     public ResponseEntity<Object> getResponseEntityOnlyData() {
         HttpStatus httpStatus = switch (statusType) {
             case SUCCESS, WARNING, INFO -> HttpStatus.OK;
-            case ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case ERROR, INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
             case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case INVALID -> HttpStatus.BAD_REQUEST;

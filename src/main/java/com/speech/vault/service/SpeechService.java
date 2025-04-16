@@ -136,7 +136,15 @@ public class SpeechService {
                 .getResponseEntity();
     }
 
-    public ResponseEntity<ResponseDto> deleteSpeech(Long speechId) {
+    public ResponseEntity<ResponseDto> setSpeechStatus(String status, Long speechId) {
+
+        SpeechStatusType speechStatusType = getSpeechStatusType(status);
+        if(speechStatusType == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INTERNAL_ERROR)
+                    .message(MessageKey.BAD_REQUEST.name())
+                    .build()
+                    .getResponseEntity();
 
         Speech speech = speechesRepository.findById(speechId).orElse(null);
         if(speech == null)
@@ -146,15 +154,36 @@ public class SpeechService {
                     .build()
                     .getResponseEntity();
 
-        speech.setStatus(SpeechStatusType.DELETED);
+        speech.setStatus(speechStatusType);
         speech.setIsDeleted(true);
         speechesRepository.save(speech);
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
-                .message(MessageKey.SPEECH_DELETED_SUCCESSFULLY.name())
+                .message(getSpeechStatusTypeMessageKey(status).name())
                 .build()
                 .getResponseEntity();
+    }
+
+    private MessageKey getSpeechStatusTypeMessageKey(String status){
+        return switch (status.toLowerCase()){
+            case "draft" -> MessageKey.SPEECH_DRAFTED_SUCCESSFULLY;
+            case "delete" -> MessageKey.SPEECH_DELETED_SUCCESSFULLY;
+            case "archive" -> MessageKey.SPEECH_ARCHIVED_SUCCESSFULLY;
+            case "publish" -> MessageKey.SPEECH_PUBLISHED_SUCCESSFULLY;
+            default -> null;
+        };
+    }
+
+    private SpeechStatusType getSpeechStatusType(String status) {
+
+        return switch (status.toLowerCase()){
+            case "draft" -> SpeechStatusType.DRAFT;
+            case "delete" -> SpeechStatusType.DELETED;
+            case "archive" -> SpeechStatusType.ARCHIVED;
+            case "publish" -> SpeechStatusType.PUBLISHED;
+            default -> null;
+        };
     }
 
     private Speech speechBuilder(Speech speech, SpeechDto dto) {
