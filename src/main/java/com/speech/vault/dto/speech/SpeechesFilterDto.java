@@ -24,7 +24,7 @@ public class SpeechesFilterDto {
     private List<String> keywords;
 
     @JsonProperty("status")
-    private List<SpeechStatusType> status;
+    private List<String> status;
 
     @JsonProperty("startDate")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

@@ -50,7 +50,7 @@ public interface SpeechesRepository extends JpaRepository<Speeches, Long> {
     """,nativeQuery = true)
     List<Map<String, Object>> getAllSpeeches(@Param("search") String search,
                                              @Param("keywords") List<String> keywords,
-                                             @Param("status") List<SpeechStatusType> status,
+                                             @Param("status") List<String> status,
                                              @Param("startDate") Date startDate,
                                              @Param("endDate") Date endDate,
                                              int nOffset,
@@ -84,7 +84,7 @@ public interface SpeechesRepository extends JpaRepository<Speeches, Long> {
     """,nativeQuery = true)
     Integer countAllSpeeches(@Param("search") String search,
                              @Param("keywords") List<String> keywords,
-                             @Param("status") List<SpeechStatusType> status,
+                             @Param("status") List<String> status,
                              @Param("startDate") Date startDate,
                              @Param("endDate") Date endDate);
 }
