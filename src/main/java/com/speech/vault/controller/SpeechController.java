@@ -1,5 +1,6 @@
 package com.speech.vault.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.speech.vault.dto.ResponseDto;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.dto.speech.SpeechesFilterDto;
@@ -27,7 +28,7 @@ public class SpeechController {
     }
     
     @PostMapping("/set")
-    public ResponseEntity<ResponseDto> setSpeech(@RequestBody SpeechDto dto){
+    public ResponseEntity<ResponseDto> setSpeech(@RequestBody SpeechDto dto) throws JsonProcessingException {
         return speechService.setSpeech(dto);
     }
 }

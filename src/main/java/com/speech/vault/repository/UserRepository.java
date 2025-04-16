@@ -8,9 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, String> {
-    User findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
     @Query(value = """
         SELECT
@@ -20,11 +21,12 @@ public interface UserRepository extends JpaRepository<User, String> {
         WHERE
             :#{#userType == null || #userType.isEmpty()} =TRUE OR u.user_type IN (:userType)
     """, nativeQuery = true)
-    int countAllUser(@Param("userType") List<UserType> userType);
+    Integer countAllUser(@Param("userType") List<UserType> userType);
 
     @Query(value = """
         SELECT
             u.username      AS username,
+            u.name          AS name,
             u.user_type     AS userType,
             u.created_at    AS createdAt 
         FROM

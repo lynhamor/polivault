@@ -1,8 +1,7 @@
 package com.speech.vault.repository;
 
-import com.speech.vault.entity.SpeechTagsId;
-import com.speech.vault.entity.key.SpeechTags;
+import com.speech.vault.entity.SpeechTag;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SpeechTagRepository extends JpaRepository<SpeechTags, SpeechTagsId> {
+public interface SpeechTagRepository extends JpaRepository<SpeechTag, Integer> {
 }

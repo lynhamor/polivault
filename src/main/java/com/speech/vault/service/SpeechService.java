@@ -1,18 +1,20 @@
 package com.speech.vault.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.speech.vault.dto.ResponseDto;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.dto.speech.SpeechesFilterDto;
-import com.speech.vault.entity.SpeechTagsId;
+import com.speech.vault.entity.SpeechTag;
 import com.speech.vault.entity.Speeches;
-import com.speech.vault.entity.key.SpeechTags;
+import com.speech.vault.entity.User;
 import com.speech.vault.repository.SpeechTagRepository;
 import com.speech.vault.repository.SpeechesRepository;
+import com.speech.vault.repository.UserRepository;
 import com.speech.vault.type.MessageKey;
 import com.speech.vault.type.StatusType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -24,10 +26,12 @@ public class SpeechService {
 
     private final SpeechesRepository speechesRepository;
     private final SpeechTagRepository speechTagRepository;
+    private final UserRepository userRepository;
 
-    public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository) {
+    public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository, UserRepository userRepository) {
         this.speechesRepository = speechesRepository;
         this.speechTagRepository = speechTagRepository;
+        this.userRepository = userRepository;
     }
 
     public ResponseEntity<ResponseDto> getAllSpeeches(SpeechesFilterDto filterDto) {
@@ -43,15 +47,24 @@ public class SpeechService {
         int pageSize = filterDto.getPageSize();
         int nOffset = Math.max(page - 1, 0) * pageSize;
 
-        int itemCount = speechesRepository.countAllSpeeches(filterDto.getSearch(),
+        Integer itemCount = speechesRepository.countAllSpeeches(filterDto.getSearch(),
                                                             filterDto.getKeywords(),
+                                                            filterDto.getStatus(),
                                                             filterDto.getStartDate(),
                                                             filterDto.getEndDate());
+
+        if(itemCount == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
 
         int totalPage = (int) Math.ceil((double) itemCount / pageSize);
 
         List<Map<String, Object>> list = speechesRepository.getAllSpeeches(filterDto.getSearch(),
                                                                            filterDto.getKeywords(),
+                                                                           filterDto.getStatus(),
                                                                            filterDto.getStartDate(),
                                                                            filterDto.getEndDate(),
                                                                            nOffset,
@@ -74,11 +87,19 @@ public class SpeechService {
                 .getResponseEntity();
     }
 
-    public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) {
+    public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) throws JsonProcessingException {
 
         ResponseEntity<ResponseDto> validatedDto = validateSpeechDto(dto);
         if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
             return validatedDto;
+
+        User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
+        if(author == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.AUTHOR_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
 
         Speeches speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(new Speeches()) : new Speeches();
         speech.setTitle(dto.getTitle());
@@ -98,16 +119,16 @@ public class SpeechService {
 
         if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
             Speeches finalSpeech = speech;
-            List<SpeechTags> speechTagsIdList = dto.getKeywords().stream()
-                    .map(tags -> new SpeechTags(SpeechTagsId.builder()
-                            .speechId(finalSpeech.getId())
-                            .keywords(tags)
-                            .build()
-                    ))
-                    .toList();
 
-            speechTagsIdList = speechTagRepository.saveAll(speechTagsIdList);
-            result.put("tags", speechTagsIdList);
+            ObjectMapper mapper = new ObjectMapper();
+            String keywords = mapper.writeValueAsString(dto.getKeywords());
+            SpeechTag speechTags = SpeechTag.builder()
+                    .speechId(finalSpeech.getId())
+                    .keywords(keywords)
+                    .build();
+
+            speechTags = speechTagRepository.save(speechTags);
+            result.put("tags", speechTags);
         }
 
         return ResponseDto.builder()
@@ -127,7 +148,6 @@ public class SpeechService {
                     .getResponseEntity();
 
         if(dto.getTitle() == null || dto.getTitle().isEmpty())
-
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.SPEECH_DTO_TITLE_REQUIRED.name())

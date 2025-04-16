@@ -4,7 +4,7 @@ spring:
   datasource:
     hikari:
       driver-class-name: org.mariadb.jdbc.Driver
-      jdbc-url: jdbc:mariadb://localhost:3306/polidraft
+      jdbc-url: jdbc:mariadb://localhost:3306/polivault
       username: root
       password: root
       connection-timeout: 30000

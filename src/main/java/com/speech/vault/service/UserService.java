@@ -32,7 +32,7 @@ public class UserService {
                     .build()
                     .getResponseEntity();
 
-        User user = userRepository.findByUsername(dto.getUsername());
+        User user = userRepository.findByUsername(dto.getUsername()).orElse(null);
         if (user != null)
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
@@ -69,7 +69,14 @@ public class UserService {
         int pageSize = filterDto.getPageSize();
         int nOffset = Math.max(page - 1, 0) * pageSize;
 
-        int itemCount = userRepository.countAllUser(filterDto.getUserType());
+        Integer itemCount = userRepository.countAllUser(filterDto.getUserType());
+
+        if(itemCount == null)
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.USER_DATA_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
 
         int totalPage = (int) Math.ceil((double) itemCount / pageSize);
 
