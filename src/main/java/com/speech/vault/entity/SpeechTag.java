@@ -16,7 +16,7 @@ public class SpeechTag {
 
     @Id
     @Column(name = "speech_id", nullable = false)
-    private Integer speechId;
+    private Long speechId;
 
     @Lob
     @Column(name = "keywords", nullable = false)

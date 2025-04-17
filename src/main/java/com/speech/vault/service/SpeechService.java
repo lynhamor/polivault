@@ -8,6 +8,7 @@ import com.speech.vault.dto.speech.SpeechesFilterDto;
 import com.speech.vault.entity.SpeechTag;
 import com.speech.vault.entity.Speech;
 import com.speech.vault.entity.User;
+import com.speech.vault.mapper.SpeechMapper;
 import com.speech.vault.repository.SpeechTagRepository;
 import com.speech.vault.repository.SpeechesRepository;
 import com.speech.vault.repository.UserRepository;
@@ -15,6 +16,7 @@ import com.speech.vault.type.MessageKey;
 import com.speech.vault.type.SpeechStatusType;
 import com.speech.vault.type.StatusType;
 import com.speech.vault.util.SpeechUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +32,12 @@ public class SpeechService {
     private final SpeechTagRepository speechTagRepository;
     private final UserRepository userRepository;
 
-    public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository, UserRepository userRepository) {
+    @Autowired
+    private SpeechMapper speechMapper;
+
+    public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository,
+                         UserRepository userRepository
+    ) {
         this.speechesRepository = speechesRepository;
         this.speechTagRepository = speechTagRepository;
         this.userRepository = userRepository;
@@ -71,18 +78,19 @@ public class SpeechService {
                                                                            filterDto.getEndDate(),
                                                                            nOffset,
                                                                            pageSize);
+        List<SpeechDto> dtoList = speechDtoBuilder(list);
 
         Map<String, Object> pagination = new HashMap<>();
         pagination.put("page", Math.max(page, 1));
         pagination.put("totalPage", totalPage);
-        pagination.put("count",  list.size());
+        pagination.put("count",  dtoList.size());
         pagination.put("size", pageSize);
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
                 .message(MessageKey.SPEECH_FETCHED_SUCCESSFULLY.name())
                 .data(Map.of(
-                        "list", list,
+                        "list", dtoList,
                         "pagination", pagination
                 ))
                 .build()
@@ -117,26 +125,14 @@ public class SpeechService {
 
             Speech finalSpeech = speechBuilder(speech, dto);
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("speech", finalSpeech);
+            SpeechTag speechTag = speechTagBuilder(dto, finalSpeech);
 
-            if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
-
-                ObjectMapper mapper = new ObjectMapper();
-                String keywords = mapper.writeValueAsString(dto.getKeywords());
-                SpeechTag speechTags = SpeechTag.builder()
-                        .speechId(finalSpeech.getId())
-                        .keywords(keywords)
-                        .build();
-
-                speechTags = speechTagRepository.save(speechTags);
-                result.put("tags", speechTags);
-            }
+            SpeechDto responseData = speechMapper.toDto(finalSpeech, speechTag);
 
             return ResponseDto.builder()
                     .statusType(StatusType.SUCCESS)
                     .message(MessageKey.SPEECH_SAVED_SUCCESSFULLY.name())
-                    .data(result)
+                    .data(responseData)
                     .build()
                     .getResponseEntity();
         }catch (Exception e){
@@ -179,11 +175,10 @@ public class SpeechService {
 
     private Speech speechBuilder(Speech speech, SpeechDto dto) {
 
-        speech.setTitle(dto.getTitle());
+        speech = speechMapper.toSpeech(dto);
+
         speech.setSlug(dto.getTitle().replace(" ","-"));
-        speech.setContent(dto.getContent());
-        speech.setStatus(dto.getStatus());
-        speech.setEventAt(dto.getEventAt());
+
         if(speech.getId() == null){
             speech.setCreatedAt(new Date());
             speech.setCreatedBy(dto.getAuthor());
@@ -194,5 +189,24 @@ public class SpeechService {
 
         return speechesRepository.save(speech);
     }
+
+    private SpeechTag speechTagBuilder(SpeechDto dto, Speech speech) throws JsonProcessingException {
+        if(dto.getKeywords() != null || !dto.getKeywords().isEmpty()){
+
+            ObjectMapper mapper = new ObjectMapper();
+            String keywords = mapper.writeValueAsString(dto.getKeywords());
+            SpeechTag speechTags = SpeechTag.builder()
+                    .speechId(speech.getId())
+                    .keywords(keywords)
+                    .build();
+
+            return speechTagRepository.save(speechTags);
+        }
+        return null;
+    }
+    private List<SpeechDto> speechDtoBuilder(List<Map<String, Object>> mapList){
+        return speechMapper.mapToDtoList(mapList);
+    }
+
 
 }

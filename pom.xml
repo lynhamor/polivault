@@ -19,8 +19,12 @@
         <maven.compiler.target>23</maven.compiler.target>
         <maven.compiler.version>3.11.0</maven.compiler.version>
         <maven.version>3.3.0</maven.version>
-        <!-- springboot versions -->
+        <!-- springboot version -->
         <springboot.version>3.2.4</springboot.version>
+        <!-- mapstruct version -->
+        <mapstruct.version>1.6.2</mapstruct.version>
+        <!-- mariadb version -->
+        <mariadb.version>RELEASE</mariadb.version>
         <!-- lombok version -->
         <lombok.version>1.18.36</lombok.version>
         <!-- project build -->
@@ -54,7 +58,14 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <scope>runtime</scope>
-            <version>RELEASE</version>
+            <version>${mariadb.version}</version>
+        </dependency>
+
+        <!-- MapStruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
         </dependency>
         <!-- lombok -->
         <dependency>
@@ -97,6 +108,11 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
