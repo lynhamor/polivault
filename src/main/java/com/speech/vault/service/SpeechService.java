@@ -19,16 +19,14 @@ import com.speech.vault.util.SpeechUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SpeechService {
 
-    private final SpeechesRepository speechesRepository;
+    private final SpeechesRepository speechRepository;
     private final SpeechTagRepository speechTagRepository;
     private final UserRepository userRepository;
 
@@ -38,9 +36,53 @@ public class SpeechService {
     public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository,
                          UserRepository userRepository
     ) {
-        this.speechesRepository = speechesRepository;
+        this.speechRepository = speechesRepository;
         this.speechTagRepository = speechTagRepository;
         this.userRepository = userRepository;
+    }
+
+    public SpeechDto getSharedSpeech(Long id, String slug) {
+
+        Map<String, Object> result = speechRepository.getSharedSpeech(id, slug).orElse(null);
+
+        if(result == null || result.isEmpty())
+            return null;
+
+        return speechMapper.mapToSpeechDto(result);
+    }
+
+    public ResponseEntity<ResponseDto> shareSpeech(Long speechId) {
+
+        Map<String, Object> result = speechRepository.getSharedSpeech(speechId, null).orElse(null);
+        if(result == null || result.isEmpty())
+            return ResponseDto.builder()
+                    .statusType(StatusType.INVALID)
+                    .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                    .build()
+                    .getResponseEntity();
+
+        SpeechDto speechDto = speechMapper.mapToSpeechDto(result);
+
+        String baseUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .build()
+                .toUriString();
+
+        StringBuilder sb = new StringBuilder();
+        String sharedUrl = sb.append(baseUrl)
+                .append("/public/shared/speech/")
+                .append(speechDto.getId())
+                .append("/")
+                .append(speechDto.getSlug())
+                .toString();
+
+
+        return ResponseDto.builder()
+                .statusType(StatusType.SUCCESS)
+                .message(MessageKey.SUCCESS.name())
+                .data(sharedUrl)
+                .build()
+                .getResponseEntity();
     }
 
     public ResponseEntity<ResponseDto> getAllSpeeches(SpeechesFilterDto filterDto) {
@@ -56,7 +98,7 @@ public class SpeechService {
         int pageSize = filterDto.getPageSize();
         int nOffset = Math.max(page - 1, 0) * pageSize;
 
-        Integer itemCount = speechesRepository.countAllSpeeches(filterDto.getSearch(),
+        Integer itemCount = speechRepository.countAllSpeeches(filterDto.getSearch(),
                                                                 filterDto.getKeywords(),
                                                                 filterDto.getStatus(),
                                                                 filterDto.getStartDate(),
@@ -71,7 +113,7 @@ public class SpeechService {
 
         int totalPage = (int) Math.ceil((double) itemCount / pageSize);
 
-        List<Map<String, Object>> list = speechesRepository.getAllSpeeches(filterDto.getSearch(),
+        List<Map<String, Object>> list = speechRepository.getAllSpeeches(filterDto.getSearch(),
                                                                            filterDto.getKeywords(),
                                                                            filterDto.getStatus(),
                                                                            filterDto.getStartDate(),
@@ -107,7 +149,7 @@ public class SpeechService {
                     return validatedDto;
             }
 
-            Speech speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(null) : new Speech();
+            Speech speech = (dto.getId() != null) ? speechRepository.findById(dto.getId()).orElse(null) : new Speech();
             if(speech == null)
                 return ResponseDto.builder()
                         .statusType(StatusType.INVALID)
@@ -154,7 +196,7 @@ public class SpeechService {
                     .build()
                     .getResponseEntity();
 
-        Speech speech = speechesRepository.findById(speechId).orElse(null);
+        Speech speech = speechRepository.findById(speechId).orElse(null);
         if(speech == null)
             return ResponseDto.builder()
                     .statusType(StatusType.INVALID)
@@ -164,7 +206,7 @@ public class SpeechService {
 
         speech.setStatus(speechStatusType);
         speech.setIsDeleted(true);
-        speechesRepository.save(speech);
+        speechRepository.save(speech);
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
@@ -187,7 +229,7 @@ public class SpeechService {
         speech.setUpdatedBy(dto.getAuthor());
         speech.setIsDeleted(false);
 
-        return speechesRepository.save(speech);
+        return speechRepository.save(speech);
     }
 
     private SpeechTag speechTagBuilder(SpeechDto dto, Speech speech) throws JsonProcessingException {

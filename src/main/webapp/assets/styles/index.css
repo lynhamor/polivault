@@ -1,0 +1,23 @@
+header {
+    position: fixed;
+    top: 30%;
+    margin: 0 auto;
+    width: 100%;
+}
+header div{
+    top: 50px;
+    width: 50%;
+    margin: 0 auto;
+    text-align: center;
+}
+footer {
+    position: fixed;
+    bottom: 20px;
+    margin: 0 auto;
+    width: 100%;
+}
+footer div {
+    width: 50%;
+    margin: 0 auto;
+    text-align: center;
+}

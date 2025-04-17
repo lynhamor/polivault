@@ -32,4 +32,9 @@ public class SpeechController {
     public ResponseEntity<ResponseDto> setSpeechStatus(@PathVariable String status, @PathVariable Long speechId) throws JsonProcessingException {
         return speechService.setSpeechStatus(status, speechId);
     }
+
+    @PostMapping("/share/{speechId}")
+    public ResponseEntity<ResponseDto> share(@PathVariable Long speechId) {
+        return speechService.shareSpeech(speechId);
+    }
 }

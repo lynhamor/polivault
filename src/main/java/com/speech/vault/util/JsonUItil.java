@@ -13,6 +13,7 @@ public class JsonUItil {
     public static List<String> parseJsonArrayString(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            System.out.println("json: "+json);
             return mapper.readValue(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
             return Collections.emptyList();

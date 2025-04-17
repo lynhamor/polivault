@@ -1,5 +1,6 @@
 package com.speech.vault.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.speech.vault.type.SpeechStatusType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 @Table( name = "speech")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Speech {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

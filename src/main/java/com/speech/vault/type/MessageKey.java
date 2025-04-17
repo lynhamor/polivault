@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum MessageKey {
+    SUCCESS,
     DTO_NOT_FOUND,
     BAD_REQUEST,
     INTERNAL_SERVER_ERROR,
@@ -24,5 +25,6 @@ public enum MessageKey {
     SPEECH_ARCHIVED_SUCCESSFULLY,
     SPEECH_PUBLISHED_SUCCESSFULLY,
     SPEECH_DRAFTED_SUCCESSFULLY,
+
 
 }

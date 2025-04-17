@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface SpeechesRepository extends JpaRepository<Speech, Long> {
 
@@ -100,4 +101,29 @@ public interface SpeechesRepository extends JpaRepository<Speech, Long> {
                              @Param("status") List<String> status,
                              @Param("startDate") Date startDate,
                              @Param("endDate") Date endDate);
+
+    @Query(value = """
+        SELECT
+            s.id                     AS id,
+            s.title                  AS title,
+            s.content                AS content,
+            u.name                   AS author,
+            s.status                 AS status,
+            s.event_at               AS eventAt,
+            st.keywords              AS tags,
+            s.slug                   AS slug
+        FROM
+            `speech` AS s
+        LEFT JOIN
+            `speech_tag` AS st
+            ON st.speech_id = s.id
+        LEFT JOIN
+            `user` AS u
+            ON u.username = s.created_by
+        WHERE
+                s.id = :id
+            AND ( :#{#slug == null || #slug.isEmpty()} = TRUE OR s.slug = :slug)
+            AND s.status = 'PUBLISHED'
+    """, nativeQuery = true)
+    Optional<Map<String, Object>> getSharedSpeech(Long id, String slug);
 }

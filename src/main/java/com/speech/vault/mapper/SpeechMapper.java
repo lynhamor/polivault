@@ -30,6 +30,7 @@ public interface SpeechMapper {
                 .content(map.get("content") != null ? String.valueOf(map.get("content")) : null)
                 .author(map.get("author") != null ? String.valueOf(map.get("author")) : null)
                 .eventAt(map.get("eventAt") != null ? (Date) map.get("eventAt") : null)
+                .slug(map.get("slug") != null ? (String) map.get("slug") : null)
                 .keywords(JsonUItil.parseJsonArrayString(tags))
                 .status(map.get("status") != null ? SpeechStatusType.valueOf(String.valueOf(map.get("status"))) : null)
                 .build();
