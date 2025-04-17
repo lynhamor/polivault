@@ -42,14 +42,15 @@ public interface SpeechesRepository extends JpaRepository<Speech, Long> {
                     s.title LIKE CONCAT('%', :search, '%')
                     OR s.content LIKE CONCAT('%', :search, '%')
                     OR s.created_by LIKE CONCAT('%', :search, '%')
+                    OR s.updated_by LIKE CONCAT('%', :search, '%')
                     OR st.keywords LIKE CONCAT('%', :search, '%')
                 )
             )
             AND (:#{#status == null || #status.isEmpty()} = TRUE OR s.status IN (:status))
             AND (:#{#keywords == null || #keywords.isEmpty()} = TRUE OR JSON_CONTAINS(st.keywords, JSON_QUOTE(:keywords)))
             AND (
-                COALESCE(:startDate, :endDate) IS NULL
-                OR s.created_at BETWEEN :startDate AND :endDate
+                   (COALESCE(:startDate, NULL) IS NULL OR COALESCE(:endDate, NULL) IS NULL)
+                OR s.event_at BETWEEN :startDate AND :endDate
             )
         GROUP BY
             s.id
@@ -81,14 +82,15 @@ public interface SpeechesRepository extends JpaRepository<Speech, Long> {
                     s.title LIKE CONCAT('%', :search, '%')
                     OR s.content LIKE CONCAT('%', :search, '%')
                     OR s.created_by LIKE CONCAT('%', :search, '%')
+                    OR s.updated_by LIKE CONCAT('%', :search, '%')
                     OR st.keywords LIKE CONCAT('%', :search, '%')
                 )
             )
             AND (:#{#status == null || #status.isEmpty()} = TRUE OR s.status IN (:status))
             AND (:#{#keywords == null || #keywords.isEmpty()} = TRUE OR JSON_CONTAINS(st.keywords, JSON_QUOTE(:keywords)))
             AND (
-                COALESCE(:startDate, :endDate) IS NULL
-                OR s.created_at BETWEEN :startDate AND :endDate
+                   (COALESCE(:startDate, NULL) IS NULL OR COALESCE(:endDate, NULL) IS NULL)
+                OR s.event_at BETWEEN :startDate AND :endDate
             )
         GROUP BY
             s.id

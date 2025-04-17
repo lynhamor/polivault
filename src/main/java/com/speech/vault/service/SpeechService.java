@@ -92,23 +92,26 @@ public class SpeechService {
     public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) throws JsonProcessingException {
         try{
 
-            ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
-            if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
-                return validatedDto;
+            if(dto.getId() == null){
 
-            User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
-            if(author == null)
-                return ResponseDto.builder()
-                        .statusType(StatusType.INVALID)
-                        .message(MessageKey.AUTHOR_NOT_FOUND.name())
-                        .build()
-                        .getResponseEntity();
+                ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
+                if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
+                    return validatedDto;
+            }
 
             Speech speech = (dto.getId() != null) ? speechesRepository.findById(dto.getId()).orElse(null) : new Speech();
             if(speech == null)
                 return ResponseDto.builder()
                         .statusType(StatusType.INVALID)
                         .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
+                        .build()
+                        .getResponseEntity();
+
+            User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
+            if(author == null)
+                return ResponseDto.builder()
+                        .statusType(StatusType.INVALID)
+                        .message(MessageKey.AUTHOR_NOT_FOUND.name())
                         .build()
                         .getResponseEntity();
 
