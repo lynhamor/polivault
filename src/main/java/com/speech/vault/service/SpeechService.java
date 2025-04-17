@@ -10,7 +10,7 @@ import com.speech.vault.entity.Speech;
 import com.speech.vault.entity.User;
 import com.speech.vault.mapper.SpeechMapper;
 import com.speech.vault.repository.SpeechTagRepository;
-import com.speech.vault.repository.SpeechesRepository;
+import com.speech.vault.repository.SpeechRepository;
 import com.speech.vault.repository.UserRepository;
 import com.speech.vault.type.MessageKey;
 import com.speech.vault.type.SpeechStatusType;
@@ -26,19 +26,19 @@ import java.util.*;
 @Service
 public class SpeechService {
 
-    private final SpeechesRepository speechRepository;
+    private final SpeechRepository speechRepository;
     private final SpeechTagRepository speechTagRepository;
     private final UserRepository userRepository;
+    private final SpeechMapper speechMapper;
 
     @Autowired
-    private SpeechMapper speechMapper;
-
-    public SpeechService(SpeechesRepository speechesRepository, SpeechTagRepository speechTagRepository,
-                         UserRepository userRepository
+    public SpeechService(SpeechRepository speechesRepository, SpeechTagRepository speechTagRepository,
+                         UserRepository userRepository, SpeechMapper speechMapper
     ) {
         this.speechRepository = speechesRepository;
         this.speechTagRepository = speechTagRepository;
         this.userRepository = userRepository;
+        this.speechMapper = speechMapper;
     }
 
     public SpeechDto getSharedSpeech(Long id, String slug) {
@@ -51,15 +51,14 @@ public class SpeechService {
         return speechMapper.mapToSpeechDto(result);
     }
 
-    public ResponseEntity<ResponseDto> shareSpeech(Long speechId) {
+    public ResponseDto shareSpeech(Long speechId) {
 
         Map<String, Object> result = speechRepository.getSharedSpeech(speechId, null).orElse(null);
         if(result == null || result.isEmpty())
             return ResponseDto.builder()
                     .statusType(StatusType.INVALID)
                     .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         SpeechDto speechDto = speechMapper.mapToSpeechDto(result);
 
@@ -81,18 +80,16 @@ public class SpeechService {
                 .statusType(StatusType.SUCCESS)
                 .message(MessageKey.SUCCESS.name())
                 .data(sharedUrl)
-                .build()
-                .getResponseEntity();
+                .build();
     }
 
-    public ResponseEntity<ResponseDto> getAllSpeeches(SpeechesFilterDto filterDto) {
+    public ResponseDto getAllSpeeches(SpeechesFilterDto filterDto) {
 
         if(filterDto == null)
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.DTO_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         int page = filterDto.getPage();
         int pageSize = filterDto.getPageSize();
@@ -108,8 +105,7 @@ public class SpeechService {
             return ResponseDto.builder()
                     .statusType(StatusType.INVALID)
                     .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         int totalPage = (int) Math.ceil((double) itemCount / pageSize);
 
@@ -135,17 +131,16 @@ public class SpeechService {
                         "list", dtoList,
                         "pagination", pagination
                 ))
-                .build()
-                .getResponseEntity();
+                .build();
     }
 
-    public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) {
+    public ResponseDto setSpeech(SpeechDto dto) {
         try{
 
             if(dto.getId() == null){
 
-                ResponseEntity<ResponseDto> validatedDto = SpeechUtil.validateSpeechDto(dto);
-                if(!validatedDto.getBody().getStatusType().equals(StatusType.SUCCESS))
+                ResponseDto validatedDto = SpeechUtil.validateSpeechDto(dto);
+                if(!validatedDto.getStatusType().equals(StatusType.SUCCESS))
                     return validatedDto;
             }
 
@@ -154,16 +149,14 @@ public class SpeechService {
                 return ResponseDto.builder()
                         .statusType(StatusType.INVALID)
                         .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
-                        .build()
-                        .getResponseEntity();
+                        .build();
 
             User author = userRepository.findByUsername(dto.getAuthor()).orElse(null);
             if(author == null)
                 return ResponseDto.builder()
                         .statusType(StatusType.INVALID)
                         .message(MessageKey.AUTHOR_NOT_FOUND.name())
-                        .build()
-                        .getResponseEntity();
+                        .build();
 
             Speech finalSpeech = speechBuilder(speech, dto);
 
@@ -175,34 +168,30 @@ public class SpeechService {
                     .statusType(StatusType.SUCCESS)
                     .message(MessageKey.SPEECH_SAVED_SUCCESSFULLY.name())
                     .data(responseData)
-                    .build()
-                    .getResponseEntity();
+                    .build();
         }catch (Exception e){
             return ResponseDto.builder()
                     .statusType(StatusType.INTERNAL_ERROR)
                     .message(e.getMessage())
-                    .build()
-                    .getResponseEntity();
+                    .build();
         }
     }
 
-    public ResponseEntity<ResponseDto> setSpeechStatus(String status, Long speechId) {
+    public ResponseDto setSpeechStatus(String status, Long speechId) {
 
         SpeechStatusType speechStatusType = SpeechUtil.getSpeechStatusType(status);
         if(speechStatusType == null)
             return ResponseDto.builder()
                     .statusType(StatusType.INTERNAL_ERROR)
                     .message(MessageKey.BAD_REQUEST.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         Speech speech = speechRepository.findById(speechId).orElse(null);
         if(speech == null)
             return ResponseDto.builder()
                     .statusType(StatusType.INVALID)
                     .message(MessageKey.SPEECH_DATA_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         speech.setStatus(speechStatusType);
         speech.setIsDeleted(true);
@@ -211,8 +200,7 @@ public class SpeechService {
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
                 .message(SpeechUtil.getSpeechStatusTypeMessageKey(status).name())
-                .build()
-                .getResponseEntity();
+                .build();
     }
 
     private Speech speechBuilder(Speech speech, SpeechDto dto) {

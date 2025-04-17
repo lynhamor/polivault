@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface SpeechesRepository extends JpaRepository<Speech, Long> {
+public interface SpeechRepository extends JpaRepository<Speech, Long> {
 
     @Query(value = """
         SELECT

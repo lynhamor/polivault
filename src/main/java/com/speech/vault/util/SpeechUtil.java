@@ -5,45 +5,39 @@ import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.type.MessageKey;
 import com.speech.vault.type.SpeechStatusType;
 import com.speech.vault.type.StatusType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SpeechUtil {
 
-    public static ResponseEntity<ResponseDto> validateSpeechDto(SpeechDto dto) {
+    public static ResponseDto validateSpeechDto(SpeechDto dto) {
         if(dto == null)
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.DTO_NOT_FOUND.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         if(dto.getTitle() == null || dto.getTitle().isEmpty())
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.SPEECH_DTO_TITLE_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         if(dto.getAuthor() == null || dto.getAuthor().isEmpty())
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.SPEECH_DTO_AUTHOR_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         if(dto.getEventAt() == null)
             return ResponseDto.builder()
                     .statusType(StatusType.ERROR)
                     .message(MessageKey.SPEECH_DTO_EVENT_DATE_REQUIRED.name())
-                    .build()
-                    .getResponseEntity();
+                    .build();
 
         return ResponseDto.builder()
                 .statusType(StatusType.SUCCESS)
-                .build()
-                .getResponseEntity();
+                .build();
 
     }
 

@@ -9,7 +9,6 @@ import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.util.Date;
 import java.util.List;
@@ -18,14 +17,12 @@ import java.util.Map;
 @Mapper(componentModel = "spring")
 public interface SpeechMapper {
 
-    SpeechMapper INSTANCE = Mappers.getMapper(SpeechMapper.class);
-
     @Named("mapToSpeechDto")
     default SpeechDto mapToSpeechDto(Map<String, Object> map){
         String tags = (String) map.get("tags");
 
         return SpeechDto.builder()
-                .id(map.get("id") != null ? Long.valueOf(map.get("id").toString()) : null)
+                .id(map.get("id") != null ? ((Number)map.get("id")).longValue() : null)
                 .title(map.get("title") != null ? String.valueOf(map.get("title")) : null)
                 .content(map.get("content") != null ? String.valueOf(map.get("content")) : null)
                 .author(map.get("author") != null ? String.valueOf(map.get("author")) : null)

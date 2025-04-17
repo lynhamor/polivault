@@ -20,21 +20,22 @@ public class SpeechController {
 
     @PostMapping("/list")
     public ResponseEntity<ResponseDto> getAllSpeech(@RequestBody SpeechesFilterDto filterDto){
-        return speechService.getAllSpeeches(filterDto);
+        return speechService.getAllSpeeches(filterDto).getResponseEntity();
     }
     
     @PostMapping("/set")
     public ResponseEntity<ResponseDto> setSpeech(@RequestBody SpeechDto dto) throws JsonProcessingException {
-        return speechService.setSpeech(dto);
+        return speechService.setSpeech(dto)
+                .getResponseEntity();
     }
 
     @PostMapping("/{status}/{speechId}")
     public ResponseEntity<ResponseDto> setSpeechStatus(@PathVariable String status, @PathVariable Long speechId) throws JsonProcessingException {
-        return speechService.setSpeechStatus(status, speechId);
+        return speechService.setSpeechStatus(status, speechId).getResponseEntity();
     }
 
     @PostMapping("/share/{speechId}")
     public ResponseEntity<ResponseDto> share(@PathVariable Long speechId) {
-        return speechService.shareSpeech(speechId);
+        return speechService.shareSpeech(speechId).getResponseEntity();
     }
 }
