@@ -5,7 +5,6 @@ import com.speech.vault.dto.ResponseDto;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.dto.speech.SpeechesFilterDto;
 import com.speech.vault.service.SpeechService;
-import com.speech.vault.type.SpeechStatusType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

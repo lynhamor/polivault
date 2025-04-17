@@ -1,7 +1,5 @@
 package com.speech.vault.mapper;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.speech.vault.dto.speech.SpeechDto;
 import com.speech.vault.entity.Speech;
 import com.speech.vault.entity.SpeechTag;
@@ -13,7 +11,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface SpeechMapper {

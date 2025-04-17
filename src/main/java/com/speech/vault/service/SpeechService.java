@@ -97,7 +97,7 @@ public class SpeechService {
                 .getResponseEntity();
     }
 
-    public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) throws JsonProcessingException {
+    public ResponseEntity<ResponseDto> setSpeech(SpeechDto dto) {
         try{
 
             if(dto.getId() == null){
@@ -204,9 +204,8 @@ public class SpeechService {
         }
         return null;
     }
+
     private List<SpeechDto> speechDtoBuilder(List<Map<String, Object>> mapList){
         return speechMapper.mapToDtoList(mapList);
     }
-
-
 }

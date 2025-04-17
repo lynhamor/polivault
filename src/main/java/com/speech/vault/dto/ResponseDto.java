@@ -25,6 +25,7 @@ public class ResponseDto {
 
     @JsonIgnore
     public ResponseEntity<ResponseDto> getResponseEntity() {
+
         this.timeMills = System.currentTimeMillis();
         HttpStatus httpStatus = switch (statusType) {
             case SUCCESS, WARNING, INFO -> HttpStatus.OK;
@@ -33,11 +34,13 @@ public class ResponseDto {
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case INVALID -> HttpStatus.BAD_REQUEST;
         };
+
         return new ResponseEntity<>(this, httpStatus);
     }
 
     @JsonIgnore
     public ResponseEntity<Object> getResponseEntityOnlyData() {
+
         HttpStatus httpStatus = switch (statusType) {
             case SUCCESS, WARNING, INFO -> HttpStatus.OK;
             case ERROR, INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
@@ -45,6 +48,7 @@ public class ResponseDto {
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case INVALID -> HttpStatus.BAD_REQUEST;
         };
+
         return new ResponseEntity<>(this.data, httpStatus);
     }
 }
